@@ -73,3 +73,28 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Secrets / local config
+supabase/functions/.env
+supabase/.temp/
+android/app/google-services.json
+
+# Firebase / service account keys
+*-firebase-adminsdk-*.json
+*serviceAccount*.json
+service-account*.json
+
+# Any env files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Other signing / key files
+*.jks
+*.pem
+*.p12
+*.key
+
+# Editor settings
+.vscode/
