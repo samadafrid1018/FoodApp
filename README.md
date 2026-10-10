@@ -202,7 +202,7 @@ If the phone cannot reach Metro over USB: `adb reverse tcp:8081 tcp:8081`.
 - **Delivery time** on restaurant cards is a static placeholder, not a real estimate.
 - **Cart** can hold items from different restaurants. A review is attributed to the restaurant of the first item in the order.
 - **Address** autofill uses the free Nominatim service, which is rate-limited and not meant for production scale. There is no map picker, delivery distance or delivery fee.
-- **Push notifications** are sent from the admin's app after a status change. A database webhook would be more robust, and the `send-notification` function should additionally verify that the caller is an admin.
+- **Push notifications** are sent from the admin's app after a status change. A database webhook would be more robust than calling the function from the client.
 - Rider assignment and live order tracking are not implemented.
 - Tested on Android only. iOS is not configured.
 
