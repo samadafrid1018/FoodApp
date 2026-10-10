@@ -44,7 +44,7 @@ FoodApp follows the **marketplace model** used by Foodpanda and Uber Eats: one a
 - New users always get the `customer` role through a database trigger. There is no update policy on `profiles`, so a user cannot promote themselves.
 - A database trigger recalculates a restaurant's average rating whenever a review is added.
 - Push notifications go through a **Supabase Edge Function** that signs a JWT with a Firebase service account and calls the **FCM HTTP v1 API**.
-- - The `send-notification` Edge Function checks the caller's JWT and only accepts requests from admins, so customers cannot send notifications.
+- The `send-notification` Edge Function checks the caller's JWT and only accepts requests from admins, so customers cannot send notifications.
 - Image loading falls back to a placeholder if a URL is broken.
 - Reviews show only first name + last initial, never the email address.
 
