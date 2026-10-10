@@ -56,13 +56,47 @@ async function getAccessToken(clientEmail: string, privateKey: string) {
   return tokenData.access_token;
 }
 
+function jsonResponse(data: object, status: number) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 Deno.serve(async (req) => {
   try {
-    const { user_id, title, body } = await req.json();
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // 1. The caller must be a logged-in user
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const jwt = authHeader.replace('Bearer ', '').trim();
+    if (!jwt) {
+      return jsonResponse({ error: 'Missing authorization token' }, 401);
+    }
+
+    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
+    if (userError || !userData?.user) {
+      return jsonResponse({ error: 'Invalid or expired token' }, 401);
+    }
+
+    // 2. The caller must be an admin (role is read from the database)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userData.user.id)
+      .single();
+
+    if (profile?.role !== 'admin') {
+      return jsonResponse({ error: 'Admins only' }, 403);
+    }
+
+    // 3. Validate the request
+    const { user_id, title, body } = await req.json();
+    if (!user_id || !title || !body) {
+      return jsonResponse({ error: 'user_id, title and body are required' }, 400);
+    }
 
     const { data: tokens, error } = await supabase
       .from('device_tokens')
@@ -70,7 +104,7 @@ Deno.serve(async (req) => {
       .eq('user_id', user_id);
 
     if (error || !tokens || tokens.length === 0) {
-      return new Response(JSON.stringify({ message: 'No tokens found' }), { status: 200 });
+      return jsonResponse({ message: 'No tokens found' }, 200);
     }
 
     const projectId = Deno.env.get('FIREBASE_PROJECT_ID')!;
@@ -100,8 +134,8 @@ Deno.serve(async (req) => {
       results.push(await res.json());
     }
 
-    return new Response(JSON.stringify({ success: true, results }), { status: 200 });
+    return jsonResponse({ success: true, results }, 200);
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+    return jsonResponse({ error: String(err) }, 500);
   }
 });
