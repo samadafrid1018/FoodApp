@@ -177,9 +177,18 @@ with check (exists (select 1 from profiles where profiles.id = auth.uid() and pr
 
 -- reviews
 drop policy if exists "Users can insert own review" on reviews;
+-- A user can review only their own order, and only after it was delivered
 create policy "Users can insert own review"
 on reviews for insert to authenticated
-with check (auth.uid() = user_id);
+with check (
+  auth.uid() = user_id
+  and exists (
+    select 1 from orders
+    where orders.id = reviews.order_id
+      and orders.user_id = auth.uid()::text
+      and orders.status = 'Delivered'
+  )
+);
 
 drop policy if exists "Everyone can read reviews" on reviews;
 create policy "Everyone can read reviews"
